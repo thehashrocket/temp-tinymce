@@ -1,10 +1,43 @@
-import { Component } from '@angular/core';
+import {
+  Component,
+  OnDestroy,
+  AfterViewInit,
+  EventEmitter,
+  Input,
+  Output
+} from '@angular/core';
+
+import 'tinymce/themes/modern/theme';
+import 'tinymce/plugins/link/plugin';
+import 'tinymce/plugins/paste/plugin';
+import 'tinymce/plugins/table/plugin';
 
 @Component({
-  selector: 'app-root',
-  templateUrl: './app.component.html',
-  styleUrls: ['./app.component.css']
+  selector: 'simple-tiny',
+  template: `<textarea id="{{elementId}}"></textarea>`
 })
-export class AppComponent {
-  title = 'app works!';
+export class AppComponent implements AfterViewInit, OnDestroy {
+  @Input() elementId: String;
+  @Output() onEditorKeyup = new EventEmitter<any>();
+
+  editor;
+
+  ngAfterViewInit() {
+    tinymce.init({
+      selector: '#' + this.elementId,
+      plugins: ['link', 'paste', 'table'],
+      skin_url: '/assets/skins/lightgray',
+      setup: editor => {
+        this.editor = editor;
+        editor.on('keyup', () => {
+          const content = editor.getContent();
+          this.onEditorKeyup.emit(content);
+        });
+      },
+    });
+  }
+
+  ngOnDestroy() {
+    tinymce.remove(this.editor);
+  }
 }
